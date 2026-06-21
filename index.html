@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>メディアの分類｜情報・表現・伝達</title>
+<style>
+  :root{
+    --bg:#F4F6F8;
+    --panel:#FFFFFF;
+    --ink:#1E2A32;
+    --sub:#5B6B75;
+    --line:#DCE3E8;
+    --teal:#0E7C7B;
+    --teal-d:#0A5F5E;
+    /* カテゴリ色（情報＝藍 / 表現＝橙 / 伝達＝緑青） */
+    --info:#3B5BDB;   --info-bg:#EEF1FE;
+    --expr:#E8590C;   --expr-bg:#FFF1E8;
+    --trans:#0E8A6E;  --trans-bg:#E7F6F0;
+    --ok:#1F8A3B;     --ok-bg:#E6F5EB;
+    --ng:#D6403A;     --ng-bg:#FCEDEC;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",Meiryo,sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.5;
+    padding:18px 14px 60px;
+  }
+  .wrap{max-width:1000px;margin:0 auto;}
+
+  header.top{margin-bottom:14px;}
+  .eyebrow{font-size:.78rem;letter-spacing:.16em;color:var(--teal);font-weight:700;}
+  h1{font-size:1.42rem;margin:.15em 0 .25em;letter-spacing:.01em;}
+  .lead{color:var(--sub);font-size:.92rem;margin:0;}
+
+  /* ツールバー */
+  .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:16px 0 12px;}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:10px;font-weight:700;}
+  .btn-main{background:var(--teal);color:#fff;padding:11px 22px;font-size:1rem;
+    box-shadow:0 2px 0 var(--teal-d);transition:transform .05s;}
+  .btn-main:active{transform:translateY(2px);box-shadow:0 0 0 var(--teal-d);}
+  .btn-ghost{background:#fff;color:var(--sub);border:1.5px solid var(--line);padding:10px 16px;font-size:.9rem;}
+  .score{margin-left:auto;font-size:.95rem;color:var(--sub);font-weight:700;}
+  .score b{color:var(--teal);font-size:1.15rem;}
+
+  /* メッセージ */
+  .msg{min-height:0;margin:0 0 14px;border-radius:12px;font-weight:700;
+    padding:0 16px;max-height:0;overflow:hidden;opacity:0;
+    transition:max-height .3s,opacity .25s,padding .3s;}
+  .msg.show{max-height:120px;opacity:1;padding:14px 16px;}
+  .msg.ok{background:var(--ok-bg);color:var(--ok);border:1.5px solid #B7E2C2;}
+  .msg.ng{background:var(--ng-bg);color:var(--ng);border:1.5px solid #F2C4C1;}
+  .msg.done{background:linear-gradient(120deg,#0E7C7B,#12A594);color:#fff;font-size:1.12rem;text-align:center;border:none;}
+
+  /* 選択肢プール */
+  .pool-wrap{background:var(--panel);border:1.5px solid var(--line);border-radius:14px;padding:12px 12px 14px;margin-bottom:16px;}
+  .pool-label{font-size:.78rem;font-weight:700;color:var(--sub);letter-spacing:.08em;margin:0 2px 8px;}
+  .zone{display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;}
+  .pool{min-height:56px;}
+
+  /* カテゴリ */
+  .cats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+  @media(max-width:720px){ .cats{grid-template-columns:1fr;} }
+  .cat{background:var(--panel);border-radius:14px;border:1.5px solid var(--line);
+    border-top:5px solid var(--c);padding:12px;display:flex;flex-direction:column;}
+  .cat h2{margin:0 0 2px;font-size:1.02rem;display:flex;align-items:center;gap:8px;}
+  .cat .num{background:var(--c);color:#fff;border-radius:7px;width:26px;height:26px;
+    display:inline-grid;place-items:center;font-size:.9rem;}
+  .cat .hint{font-size:.74rem;color:var(--sub);margin:0 0 10px;}
+  .drop{flex:1;min-height:120px;border-radius:10px;background:var(--c-bg);
+    border:2px dashed transparent;padding:8px;transition:border-color .12s,background .12s;}
+  .drop.zone-hover{border-color:var(--c);background:#fff;}
+
+  /* チップ */
+  .chip{user-select:none;touch-action:none;cursor:grab;
+    background:#fff;border:1.5px solid var(--line);border-radius:10px;
+    padding:8px 12px;min-height:48px;display:flex;flex-direction:column;justify-content:center;
+    box-shadow:0 1px 2px rgba(20,40,55,.06);transition:box-shadow .1s,border-color .1s,transform .06s;}
+  .chip:active{cursor:grabbing;}
+  .chip .k{font-size:.7rem;font-weight:800;color:var(--teal);letter-spacing:.04em;line-height:1;}
+  .chip .l{font-size:.98rem;font-weight:700;line-height:1.2;}
+  .chip.correct{border-color:var(--ok);background:var(--ok-bg);}
+  .chip.correct .k{color:var(--ok);}
+  .chip.wrong{border-color:var(--ng);background:var(--ng-bg);}
+  .chip.wrong .k{color:var(--ng);}
+  .chip .mark{position:absolute;}
+  .chip{position:relative;}
+  .chip .badge{position:absolute;top:-9px;right:-9px;width:22px;height:22px;border-radius:50%;
+    display:none;place-items:center;color:#fff;font-size:.8rem;font-weight:900;}
+  .chip.correct .badge{display:grid;background:var(--ok);}
+  .chip.wrong .badge{display:grid;background:var(--ng);}
+
+  /* ドラッグ中のクローン */
+  .drag-clone{position:fixed;z-index:9999;pointer-events:none;
+    transform:translate(-50%,-60%) scale(1.05);box-shadow:0 8px 24px rgba(20,40,55,.28);
+    border-color:var(--teal);}
+
+  .foot{margin-top:18px;font-size:.78rem;color:var(--sub);}
+  kbd{background:#fff;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-family:inherit;font-size:.8rem;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">情報Ⅰ ／ メディアの機能</div>
+    <h1>メディアを 3 つに分類しよう</h1>
+    <p class="lead">選択肢 ア〜チ を、対応するカテゴリ（情報メディア・表現メディア・伝達メディア）へドラッグして入れます。〈答え合わせ〉を押すと、正しいカードは緑色で残り、まちがったカードは選択肢にもどります。もどったカードを入れ直して、もう一度確かめましょう。</p>
+  </header>
+
+  <div class="bar">
+    <button class="btn-main" id="check">答え合わせ</button>
+    <button class="btn-ghost" id="reset">最初から</button>
+    <div class="score">配置 <b id="placed">0</b> / 17</div>
+  </div>
+
+  <div class="msg" id="msg"></div>
+
+  <div class="pool-wrap">
+    <p class="pool-label">選択肢（ここから引き出してください）</p>
+    <div class="zone pool drop" id="pool" data-cat="pool"></div>
+  </div>
+
+  <div class="cats">
+    <section class="cat" style="--c:var(--info);--c-bg:var(--info-bg);">
+      <h2><span class="num">1</span>情報メディア</h2>
+      <p class="hint">情報そのものを伝える、まとまりとしての媒体</p>
+      <div class="drop" id="info" data-cat="info"></div>
+    </section>
+    <section class="cat" style="--c:var(--expr);--c-bg:var(--expr-bg);">
+      <h2><span class="num">2</span>表現メディア</h2>
+      <p class="hint">情報を表現するかたち</p>
+      <div class="drop" id="expr" data-cat="expr"></div>
+    </section>
+    <section class="cat" style="--c:var(--trans);--c-bg:var(--trans-bg);">
+      <h2><span class="num">3</span>伝達メディア</h2>
+      <p class="hint">情報を運ぶ・記録する物理的な手段</p>
+      <div class="drop" id="trans" data-cat="trans"></div>
+    </section>
+  </div>
+
+  <p class="foot">※ DVD は記録メディアとして〈伝達メディア〉に分類しています。判定基準は <kbd>ANSWER</kbd>（ファイル内コメント）で変更できます。</p>
+</div>
+
+<script>
+/* ============================================================
+   設問2：情報メディア / 表現メディア / 伝達メディア の分類
+   正答（cat）：  info=情報  expr=表現  trans=伝達
+   ※答えを変えたい場合は下の cat を書き換えてください。
+   ============================================================ */
+const ITEMS = [
+  {k:'ア', l:'図形',       cat:'expr'},
+  {k:'イ', l:'電波',       cat:'trans'},
+  {k:'ウ', l:'動画',       cat:'expr'},
+  {k:'エ', l:'電話',       cat:'info'},
+  {k:'オ', l:'テレビ放送', cat:'info'},
+  {k:'カ', l:'音声',       cat:'expr'},
+  {k:'キ', l:'Webページ',  cat:'info'},
+  {k:'ク', l:'電線',       cat:'trans'},
+  {k:'ケ', l:'静止画',     cat:'expr'},
+  {k:'コ', l:'紙',         cat:'trans'},
+  {k:'サ', l:'電子メール', cat:'info'},
+  {k:'シ', l:'書籍',       cat:'info'},
+  {k:'ス', l:'新聞',       cat:'info'},
+  {k:'セ', l:'DVD',        cat:'trans'},
+  {k:'ソ', l:'ラジオ放送', cat:'info'},
+  {k:'タ', l:'文字',       cat:'expr'},
+  {k:'チ', l:'空気',       cat:'trans'},
+];
+
+const pool  = document.getElementById('pool');
+const zones = ['pool','info','expr','trans'].map(id=>document.getElementById(id));
+const msg   = document.getElementById('msg');
+const placedEl = document.getElementById('placed');
+
+/* チップ生成 */
+function buildChip(item){
+  const el = document.createElement('div');
+  el.className = 'chip';
+  el.dataset.cat = item.cat;
+  el.innerHTML = `<span class="k">${item.k}</span><span class="l">${item.l}</span><span class="badge"></span>`;
+  el.addEventListener('pointerdown', e=>startDrag(el, e));
+  return el;
+}
+function deal(){
+  zones.forEach(z=>z.innerHTML='');
+  // シャッフルしてプールに配置
+  const shuffled = [...ITEMS].sort(()=>Math.random()-0.5);
+  shuffled.forEach(it=>pool.appendChild(buildChip(it)));
+  clearMarks(); updatePlaced(); flash('', null);
+}
+
+/* ---------- ドラッグ（マウス＆タッチ共通：Pointer Events） ---------- */
+function startDrag(chip, e){
+  e.preventDefault();
+  chip.classList.remove('correct','wrong');   // 動かすカードの判定マークだけ消す
+  const clone = chip.cloneNode(true);
+  clone.classList.add('drag-clone');
+  document.body.appendChild(clone);
+  move(clone, e.clientX, e.clientY);
+  chip.style.opacity = '.35';
+  let hoverZone = null;
+
+  function onMove(ev){
+    move(clone, ev.clientX, ev.clientY);
+    const z = zoneUnder(clone, ev.clientX, ev.clientY);
+    if(z !== hoverZone){
+      if(hoverZone) hoverZone.classList.remove('zone-hover');
+      hoverZone = z;
+      if(hoverZone) hoverZone.classList.add('zone-hover');
+    }
+  }
+  function onUp(ev){
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onUp);
+    document.removeEventListener('pointercancel', onUp);
+    const z = zoneUnder(clone, ev.clientX, ev.clientY);
+    clone.remove();
+    if(hoverZone) hoverZone.classList.remove('zone-hover');
+    chip.style.opacity = '';
+    if(z){ z.appendChild(chip); }
+    updatePlaced();
+  }
+  document.addEventListener('pointermove', onMove);
+  document.addEventListener('pointerup', onUp);
+  document.addEventListener('pointercancel', onUp);
+}
+function move(el,x,y){ el.style.left = x+'px'; el.style.top = y+'px'; }
+function zoneUnder(clone,x,y){
+  clone.style.display='none';
+  const t = document.elementFromPoint(x,y);
+  clone.style.display='';
+  return t ? t.closest('.drop') : null;
+}
+
+/* ---------- 判定 ---------- */
+function clearMarks(){
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('correct','wrong'));
+}
+function updatePlaced(){
+  const n = document.querySelectorAll('.cat .chip').length;
+  placedEl.textContent = n;
+}
+function check(){
+  const placedNow = document.querySelectorAll('.cat .chip').length;
+  if(placedNow < 17){
+    flash(`まだ ${17 - placedNow} 個が未配置です。すべて入れてから答え合わせをしましょう。`, 'ng');
+    return;
+  }
+  clearMarks();
+  let correct = 0;
+  const returned = [];
+  ['info','expr','trans'].forEach(catId=>{
+    document.getElementById(catId).querySelectorAll('.chip').forEach(chip=>{
+      if(chip.dataset.cat === catId){ chip.classList.add('correct'); correct++; }  // 正解→緑のまま残す
+      else { returned.push(chip); }                                                 // 不正解→選択肢へ戻す
+    });
+  });
+  // まちがって入れたカードを最初の選択肢欄へ戻す
+  returned.forEach(chip=>{ chip.classList.remove('correct','wrong'); pool.appendChild(chip); });
+  updatePlaced();
+
+  if(correct === 17){
+    flash('🎉 完全正解！ 17問すべて正しく分類できました。', 'done');
+  }else{
+    flash(`${correct} / 17 正解。 ${returned.length} 個を選択肢にもどしました。入れ直して、もう一度確かめましょう。`, 'ng');
+  }
+}
+function flash(text, type){
+  msg.className = 'msg';
+  if(!text) return;
+  msg.textContent = text;
+  msg.classList.add('show', type);
+}
+
+document.getElementById('check').addEventListener('click', check);
+document.getElementById('reset').addEventListener('click', deal);
+deal();
+</script>
+</body>
+</html>
